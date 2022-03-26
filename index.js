@@ -1,3 +1,4 @@
+
 const canvas=document.querySelector('#canvas');
 const c= canvas.getContext('2d');
 
@@ -5,9 +6,18 @@ canvas.width=innerWidth;
 canvas.height=innerHeight;
 
 const scoreEL = document.querySelector('#scoreEL')
+
 const startGameBtn = document.querySelector('#startGameBtn')
-const modalEL = document.querySelector('#modalEL')
-const bigScoreEL = document.querySelector('#bigScoreEL')
+const nextStageBtn = document.querySelector('#nextStageBtn')
+const regameBtn = document.querySelector('#regameBtn')
+const returnToMainBtn = document.querySelectorAll('#returnToMainBtn')
+
+const modalStartGame = document.querySelector('#modalStartGame')
+const modalNextStage = document.querySelector('#modalNextStage')
+const modalRegame = document.querySelector('#modalRegame')
+const modalAllClear = document.querySelector('#modalAllClear')
+
+const bigScoreEL = document.querySelectorAll('#bigScoreEL')
 
 // classes
 class Player{
@@ -121,39 +131,60 @@ class Obstacle{
 }
 
 // variables
-const x=canvas.width/2
-const y=canvas.height/2
-
-let player=new Player(x,y,10,'white',3)
+let player=null
 let projectiles=[]
 let enemies=[]
 let particles=[]
 let obstacles=[]
 
 let pressedKey=[]
+let score=0
+let stage=1
+
+const stageData={
+  1:{
+    targetScore : 1000,
+    enemySpeed : 1.5,
+    enemySpawnRate : 40
+  },
+  2:{
+    targetScore : 2000,
+    enemySpeed : 2,
+    enemySpawnRate : 35
+  },
+  3:{
+    targetScore : 3000,
+    enemySpeed : 2.3,
+    enemySpawnRate : 32
+  },
+}
 
 // functions
-function init(){
-  player=new Player(x,y,10,'white',3)
+function initObject(){
+  player=new Player(canvas.width/2,canvas.height/2,10,'white',3)
   projectiles=[]
   enemies=[]
   particles=[]
   obstacles=[]
-  
+}
+
+function initScore(){
   score = 0
+  stage = 1
   scoreEL.innerHTML=score
-  bigScoreEL.innerHTML=score
+  bigScoreEL.forEach((el)=>{
+    el.innerHTML=score
+  })
 }
 
 let animationId
-let score = 0
 function animate(){
   animationId = requestAnimationFrame(animate)
   c.fillStyle='rgba(0,0,0,0.1)'
   c.fillRect(0, 0, canvas.width, canvas.height)
   
   // player movement
-  if(pressedKey.length >= 1){
+  if(pressedKey.length >= 1 && player!==null){
     if(pressedKey.length >= 2){
       if(
         (pressedKey[0]=='a' && pressedKey[1]=='w') ||
@@ -211,8 +242,6 @@ function animate(){
     if(player.y + player.radius > canvas.height){
       player.y=canvas.height-player.radius
     }
-
-    
   }
 
   // obstacles
@@ -220,7 +249,7 @@ function animate(){
     obstacle.draw()
 
     // cannot go across obstacles
-    if(obstacle.x - player.radius < player.x && player.x < obstacle.x + obstacle.width + player.radius && obstacle.y - player.radius < player.y && player.y < obstacle.y + obstacle.height + player.radius){
+    if(player!==null && obstacle.x - player.radius < player.x && player.x < obstacle.x + obstacle.width + player.radius && obstacle.y - player.radius < player.y && player.y < obstacle.y + obstacle.height + player.radius){
       if(player.x + player.radius <= obstacle.x + player.speed){
         player.x=obstacle.x-player.radius
       }
@@ -236,7 +265,10 @@ function animate(){
     }
   })
 
-  player.draw()
+  if(player!==null){
+    player.draw()
+  }
+
   particles.forEach((particle, idx)=>{
     if(particle.alpha < 0){
       particles.splice(idx, 1)
@@ -266,7 +298,8 @@ function animate(){
     })
   })
 
-  if(animationId % 60 === 0){
+  // spawn enemies
+  if(animationId % stageData[stage].enemySpawnRate === 0){
     setTimeout(()=>{
       const radius=Math.random() * (30-4) + 10
       let x
@@ -283,8 +316,8 @@ function animate(){
       
       const color=`hsl(${Math.random() * 360}, 50%, 50%)`
 
-      const angle=Math.atan2(player.y-y, player.x-x)
-      const r=Math.random() * (1.4 - 0.6) + 0.6
+      const angle=Math.atan2(Math.random() - 0.5, Math.random() - 0.5)
+      const r=Math.random() * (0.8) + (stageData[stage].enemySpeed - 0.4)
       const velocity={
         x:Math.cos(angle) * r,
         y:Math.sin(angle) * r
@@ -297,13 +330,28 @@ function animate(){
   enemies.forEach((enemy, idx)=>{
     enemy.update()
 
+    if(player==null){
+      return
+    }
     // end game
     const dist = Math.hypot(player.x - enemy.x, player.y - enemy.y)
     if(dist - enemy.radius - player.radius < 0){
-      cancelAnimationFrame(animationId)
-      //clearInterval(spawnEnemiesInterval)
-      modalEL.style.display='flex'
-      bigScoreEL.innerHTML=score
+      for(let i=0;i<player.radius*4;i++){
+        particles.push(new Particle(player.x, player.y, Math.random() * 2, player.color, {
+          x: (Math.random() - 0.5) * Math.random() * 6,
+          y: (Math.random() - 0.5) * Math.random() * 6
+        }))
+      }
+
+      player=null
+
+      bigScoreEL.forEach((el)=>{
+        el.innerHTML=score
+      })
+
+      setTimeout(() => {
+        modalRegame.style.display='flex'
+      }, 3000);
     }
 
     // hit enemy
@@ -317,7 +365,7 @@ function animate(){
             y: (Math.random() - 0.5) * Math.random() * 6
           }))
         }
-
+        
         if(enemy.radius - 10 > 7){
           score += 100
           scoreEL.innerHTML=score
@@ -340,6 +388,9 @@ function animate(){
       }
     })
 
+  })
+
+  enemies.forEach((enemy, idx)=>{
     if(
       enemy.x - enemy.radius > canvas.width+5 || 
       enemy.x + enemy.radius < -5 ||
@@ -351,44 +402,28 @@ function animate(){
         }, 0);
       }
   })
+
+  if(score > stageData[stage].targetScore){
+    player=null
+    bigScoreEL.forEach((el)=>{
+      el.innerHTML=score
+    })
+    console.log('qq')
+    if(stage+1 in stageData){
+      modalNextStage.style.display='flex'
+    } else{
+      modalAllClear.style.display='flex'
+    }
+  }
 }
-
-// let spawnEnemiesInterval
-// function spawnEnemies(){
-//   spawnEnemiesInterval=
-//   setInterval(()=>{
-//     const radius=Math.random() * (30-4) + 10
-//     let x
-//     let y
-  
-//     if (Math.random() < 0.5){
-//       x=Math.random() < 0.5 ? 0-radius : canvas.width+radius
-//       y=Math.random() * canvas.height
-//     }
-//     else{
-//       x=Math.random() * canvas.width
-//       y=Math.random() < 0.5 ? 0-radius : canvas.height+radius
-//     }
-    
-//     const color=`hsl(${Math.random() * 360}, 50%, 50%)`
-
-//     const angle=Math.atan2(player.y-y, player.x-x)
-//     const velocity={
-//       x:Math.cos(angle),
-//       y:Math.sin(angle)
-//     }
-    
-//     enemies.push(new Enemy(x,y,radius,color, velocity))
-//   }, 1000)
-// }
 
 function setObstacle(){
   for(let i=0;i<5;i++){
-    const width = Math.random() * (300 - 10) + 20
-    const height = Math.random() * (300 - 10) + 20
+    const width = Math.random() * (300 - 10) + 40
+    const height = Math.random() * (300 - 10) + 40
     const x = Math.random() * canvas.width - 50
     const y = Math.random() * canvas.height - 30
-    const color = 'hsl(0,100%,100%)'
+    const color = 'hsl(0,0%,50%)'
     obstacles.push(new Obstacle(x,y,width,height,color))
   }
 }
@@ -415,7 +450,7 @@ window.addEventListener('keyup', (e)=>{
 })
 
 window.addEventListener('mousedown', (e)=>{
-  if(e.button===0){
+  if(e.button===0 && player!==null){
     const angle=Math.atan2(
       e.clientY-player.y,
       e.clientX-player.x
@@ -430,9 +465,48 @@ window.addEventListener('mousedown', (e)=>{
 })
 
 startGameBtn.addEventListener('click', ()=>{
-  init()
+  cancelAnimationFrame(animationId)
+  initObject()
+  initScore()
   setObstacle()
   animate()
-  //spawnEnemies()
-  modalEL.style.display='none'
+  modalStartGame.style.display='none'
 })
+
+nextStageBtn.addEventListener('click', ()=>{
+  cancelAnimationFrame(animationId)
+  stage+=1
+  initObject()
+  setObstacle()
+  animate()
+  modalNextStage.style.display='none'
+  
+})
+
+regameBtn.addEventListener('click', ()=>{
+  cancelAnimationFrame(animationId)
+  initObject()
+  initScore()
+  setObstacle()
+  animate()
+  modalRegame.style.display='none'
+})
+
+returnToMainBtn.forEach(el=>{
+  el.addEventListener('click', ()=>{
+    cancelAnimationFrame(animationId)
+    modalAllClear.style.display='none'
+    modalRegame.style.display='none'
+    main()
+  })
+})
+
+function main(){
+  initObject()
+  initScore()
+  player=null
+  animate()
+  modalStartGame.style.display='flex'
+}
+
+main()

@@ -8,21 +8,54 @@
 
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.tailwindcss.com"></script>
-  <script defer src="index.js"></script>
+  <script defer src="index.js" type="module"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js" integrity="sha512-H6cPm97FAsgIKmlBA4s774vqoN24V5gSQL4yBTDOY2su2DeXZVhQPxFK4P6GPdnZqM9fg1G3cMv5wD7e6cFLZQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
   <div class="fixed text-white text-sm ml-2 mt-1 select-none"><span>Score : </span><span id="scoreEL">0</span></div>
 
-  <div class="fixed inset-0 flex items-center justify-center" id="modalEL">
-    <div class="bg-white max-w-md w-full p-6 text-center">
+  <div class="fixed inset-0 flex items-center justify-center" id="modalStartGame" style="display:none">
+    <div>
+      <button class="bg-transparent text-white w-full px-5 py-3 border-solid border-white border-4 rounded-full text-4xl" id="startGameBtn">Start Game</button>
+    </div>
+  </div>
+
+  <div class="fixed inset-0 items-center justify-center" id="modalNextStage" style="display:none">
+    <div class="bg-white max-w-md w-full p-6 text-center border-solid border-white border-4" style="background-color:rgba(255, 255, 255, 0.7)">
       <h1 class="text-4xl font-bold" id="bigScoreEL">0</h1>
       <p class="text-sm text-gray-700 mb-4">Points</p>
       <div>
-        <button class="bg-blue-500 text-white w-full py-3 rounded-full text-lg" id="startGameBtn">Start Game</button>
+        <button class="bg-blue-500 text-white w-full py-3 rounded-full text-xl" id="nextStageBtn">Next Stage</button>
       </div>
     </div>
   </div>
+
+  <div class="fixed inset-0 hidden items-center justify-center" id="modalRegame" style="display:none">
+    <div class="max-w-md w-full p-6 text-center border-solid border-white border-4" style="background-color:rgba(255, 255, 255, 0.7)">
+      <h1 class="text-4xl font-bold" id="bigScoreEL">0</h1>
+      <p class="text-sm text-gray-700 mb-4">Points</p>
+      <div class="mb-4">
+        <button class="bg-blue-500 text-white w-full py-3 rounded-full text-xl" id="regameBtn">Regame?</button>
+      </div>
+      <div>
+        <button class="bg-blue-500 text-white w-full py-3 rounded-full text-xl" id="returnToMainBtn">Return to main</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="fixed inset-0 hidden items-center justify-center" id="modalAllClear" style="display:none">
+    <div class="bg-white max-w-md w-full p-6 text-center border-solid border-white border-4" style="background-color:rgba(255, 255, 255, 0.7)">
+      <h1 class="text-4xl font-bold" id="bigScoreEL">0</h1>
+      <p class="text-sm text-gray-700 mb-4">Points</p>
+      <div class="text-lg text-black mb-4">
+        <span>Congraturation! You cleared all stages.</span>
+      </div>
+      <div>
+        <button class="bg-blue-500 text-white w-full py-3 rounded-full text-xl" id="returnToMainBtn">Return to main</button>
+      </div>
+    </div>
+  </div>
+
 
   <canvas id="canvas"></canvas>
 
