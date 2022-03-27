@@ -6,6 +6,8 @@ canvas.width=innerWidth;
 canvas.height=innerHeight;
 
 const scoreEL = document.querySelector('#scoreEL')
+const stageEL = document.querySelector('#stageEL')
+const timeLeft = document.querySelector('#timeLeft')
 
 const startGameBtn = document.querySelector('#startGameBtn')
 const nextStageBtn = document.querySelector('#nextStageBtn')
@@ -140,22 +142,32 @@ let obstacles=[]
 let pressedKey=[]
 let score=0
 let stage=1
+let time
 
 const stageData={
   1:{
-    targetScore : 1000,
+    endureSec : 20,
     enemySpeed : 1.5,
-    enemySpawnRate : 40
+    enemySpawnRate : 40,
+    obstacle : 0
   },
   2:{
-    targetScore : 2000,
+    endureSec : 30,
     enemySpeed : 2,
-    enemySpawnRate : 35
+    enemySpawnRate : 35,
+    obstacle : 3
   },
   3:{
-    targetScore : 3000,
+    endureSec : 40,
     enemySpeed : 2.3,
-    enemySpawnRate : 32
+    enemySpawnRate : 30,
+    obstacle : 4
+  },
+  4:{
+    endureSec : 40,
+    enemySpeed : 2.5,
+    enemySpawnRate : 28,
+    obstacle : 5
   },
 }
 
@@ -244,6 +256,13 @@ function animate(){
     }
   }
 
+  // time left
+  if(player!==null && animationId % 12 == 0){
+    time-=0.1
+    timeLeft.innerHTML=Math.abs(time).toFixed(1)
+    console.log(animationId)
+  }
+
   // obstacles
   obstacles.forEach((obstacle)=>{
     obstacle.draw()
@@ -269,6 +288,7 @@ function animate(){
     player.draw()
   }
 
+  // update particle
   particles.forEach((particle, idx)=>{
     if(particle.alpha < 0){
       particles.splice(idx, 1)
@@ -277,6 +297,7 @@ function animate(){
     }
   })
 
+  // remove projectile
   projectiles.forEach((projectile, idx)=>{
     projectile.update()
 
@@ -316,7 +337,17 @@ function animate(){
       
       const color=`hsl(${Math.random() * 360}, 50%, 50%)`
 
-      const angle=Math.atan2(Math.random() - 0.5, Math.random() - 0.5)
+      let angle
+      if(x <= 0){
+        angle=Math.atan2(Math.random() - 0.5, Math.random())
+      } else if(x >= canvas.width){
+        angle=Math.atan2(Math.random() - 0.5, -Math.random())
+      } else if(y <= 0){
+        angle=Math.atan2(Math.random(), Math.random() - 0.5)
+      } else{
+        angle=Math.atan2(-Math.random(), Math.random() - 0.5)
+      }
+
       const r=Math.random() * (0.8) + (stageData[stage].enemySpeed - 0.4)
       const velocity={
         x:Math.cos(angle) * r,
@@ -403,12 +434,13 @@ function animate(){
       }
   })
 
-  if(score > stageData[stage].targetScore){
+  // clear stage
+  if(player!==null && time<=0.05){
     player=null
     bigScoreEL.forEach((el)=>{
       el.innerHTML=score
     })
-    console.log('qq')
+    
     if(stage+1 in stageData){
       modalNextStage.style.display='flex'
     } else{
@@ -418,7 +450,7 @@ function animate(){
 }
 
 function setObstacle(){
-  for(let i=0;i<5;i++){
+  for(let i=0;i<stageData[stage].obstacle;i++){
     const width = Math.random() * (300 - 10) + 40
     const height = Math.random() * (300 - 10) + 40
     const x = Math.random() * canvas.width - 50
@@ -466,16 +498,25 @@ window.addEventListener('mousedown', (e)=>{
 
 startGameBtn.addEventListener('click', ()=>{
   cancelAnimationFrame(animationId)
+  stage=1
+  stageEL.innerHTML=stage
+  time=stageData[stage].endureSec
+  scoreEL.parentElement.classList.toggle('hidden')
+  stageEL.parentElement.classList.toggle('hidden')
+  timeLeft.parentElement.classList.toggle('hidden')
   initObject()
   initScore()
   setObstacle()
   animate()
+  
   modalStartGame.style.display='none'
 })
 
 nextStageBtn.addEventListener('click', ()=>{
   cancelAnimationFrame(animationId)
   stage+=1
+  stageEL.innerHTML=stage
+  time=stageData[stage].endureSec
   initObject()
   setObstacle()
   animate()
@@ -485,6 +526,9 @@ nextStageBtn.addEventListener('click', ()=>{
 
 regameBtn.addEventListener('click', ()=>{
   cancelAnimationFrame(animationId)
+  stage=1
+  stageEL.innerHTML=stage
+  time=stageData[stage].endureSec
   initObject()
   initScore()
   setObstacle()
@@ -497,6 +541,7 @@ returnToMainBtn.forEach(el=>{
     cancelAnimationFrame(animationId)
     modalAllClear.style.display='none'
     modalRegame.style.display='none'
+    modalNextStage.style.display='none'
     main()
   })
 })
@@ -505,6 +550,9 @@ function main(){
   initObject()
   initScore()
   player=null
+  scoreEL.parentElement.classList.add('hidden')
+  stageEL.parentElement.classList.add('hidden')
+  timeLeft.parentElement.classList.add('hidden')
   animate()
   modalStartGame.style.display='flex'
 }

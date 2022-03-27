@@ -12,7 +12,9 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js" integrity="sha512-H6cPm97FAsgIKmlBA4s774vqoN24V5gSQL4yBTDOY2su2DeXZVhQPxFK4P6GPdnZqM9fg1G3cMv5wD7e6cFLZQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
-  <div class="fixed text-white text-sm ml-2 mt-1 select-none"><span>Score : </span><span id="scoreEL">0</span></div>
+  <div class="fixed hidden text-white text-sm ml-2 mt-1 select-none"><span>Stage </span><span id="stageEL">0</span></div>
+  <div class="fixed hidden text-white text-sm ml-2 mt-6 select-none"><span>Score : </span><span id="scoreEL">0</span></div>
+  <div class="fixed hidden text-white text-3xl right-0 mr-3 mt-1 select-none"><span id="timeLeft">0</span></div>
 
   <div class="fixed inset-0 flex items-center justify-center" id="modalStartGame" style="display:none">
     <div>
