@@ -12,4 +12,5 @@ html, css, javascript
 
 ## 참고
 https://www.youtube.com/watch?v=eI9idPTT0c4&ab_channel=ChrisCourses
+
 위 영상의 강의를 참고하여 기본 구조를 설정하였고, 이후 여러 기능을 추가함
