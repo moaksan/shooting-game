@@ -1,6 +1,9 @@
 # 개요
 shooting game
 
+## 링크
+https://moaksan.github.io/shooting-game/
+
 ## 사용 언어
 html, css, javascript
 
